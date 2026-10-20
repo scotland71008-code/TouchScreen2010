@@ -509,18 +509,20 @@ function buildAchievementCertificatePdf(winner: {
     doc.text(credLine, 792, 748, { align: "center" });
   }
 
-  // 3. Body sentence: "In recognition of your participation in the ADIPEC interactive quiz and for securing 1st place"
+  // 3. Body sentence — two segments so "1st/2nd/3rd place" renders in pink
   if (winner.includeBody !== false) {
     const placeWord = winner.rank === 1 ? "1st place" : winner.rank === 2 ? "2nd place" : winner.rank === 3 ? "3rd place" : `${winner.rank}th place`;
-    doc.setTextColor(226, 232, 240);
+    const before = `In recognition of your participation in the ADIPEC interactive quiz and for securing `;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(20);
-    doc.text(
-      `In recognition of your participation in the ADIPEC interactive quiz and for securing ${placeWord}`,
-      792,
-      820,
-      { align: "center" }
-    );
+    const beforeW = doc.getTextWidth(before);
+    const highlightW = doc.getTextWidth(placeWord);
+    const startX = 792 - (beforeW + highlightW) / 2;
+    doc.setTextColor(226, 232, 240);
+    doc.text(before, startX, 820, { align: "left" });
+    doc.setTextColor(244, 63, 94);
+    doc.setFont("helvetica", "bold");
+    doc.text(placeWord, startX + beforeW, 820, { align: "left" });
   }
 
   // 4. Date: centred at x=345, above y=1013

@@ -335,26 +335,37 @@ export default function OfficialAchievementCertificate({
         )}
 
         {/* ── Dynamic Layer 3: Body Sentence (Optional) ── */}
-        {includeBodySentence && (
-          <g>
-            <text
-              x="792"
-              y={bodyY}
-              textAnchor="middle"
-              fill="#e2e8f0"
-              style={{
-                fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif",
-                fontSize: '20px',
-                letterSpacing: '0.02em',
-              }}
-            >
-              In recognition of your participation in the ADIPEC interactive quiz and for securing{' '}
-              <tspan fill="#f43f5e" fontWeight="700">
+        {/* Two separate <text> elements so html2canvas captures the pink fill correctly */}
+        {includeBodySentence && (() => {
+          const before = 'In recognition of your participation in the ADIPEC interactive quiz and for securing ';
+          // Approximate character width at 20px Plus Jakarta Sans (~9.6px avg) for centering
+          const approxBeforeW = before.length * 9.6;
+          const approxHighlightW = placeWord.length * 9.6 * 1.05; // bold ~5% wider
+          const startX = 792 - (approxBeforeW + approxHighlightW) / 2;
+          return (
+            <g>
+              <text
+                x={startX}
+                y={bodyY}
+                textAnchor="start"
+                fill="#e2e8f0"
+                style={{ fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif", fontSize: '20px', letterSpacing: '0.02em' }}
+              >
+                {before}
+              </text>
+              <text
+                x={startX + approxBeforeW}
+                y={bodyY}
+                textAnchor="start"
+                fill="#f43f5e"
+                fontWeight="700"
+                style={{ fontFamily: "'Plus Jakarta Sans', -apple-system, sans-serif", fontSize: '20px', letterSpacing: '0.02em' }}
+              >
                 {placeWord}
-              </tspan>
-            </text>
-          </g>
-        )}
+              </text>
+            </g>
+          );
+        })()}
 
         {/* ── Dynamic Layer 4: Date ── */}
         {/* Centred at x=345, positioned above left date line (y=1013) */}
