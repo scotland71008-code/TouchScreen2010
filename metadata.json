@@ -1,0 +1,6 @@
+{
+  "name": "Octave Interactive Solution Showcase",
+  "description": "An interactive touchscreen-compatible platform showcasing the Octave enterprise portfolio, featuring a solution directory, visual system architecture builder, blueprint templates, an AI Pre-Sales Architect, and downloadable Word documentation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

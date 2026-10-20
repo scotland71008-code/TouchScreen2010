@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JPG → SVG Converter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f0f13;
+      color: #e2e2e8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.25rem;
+    }
+
+    h1 span { color: #7c6af7; }
+
+    .subtitle {
+      font-size: 0.875rem;
+      color: #888;
+      margin-bottom: 2rem;
+    }
+
+    .drop-zone {
+      width: 100%;
+      max-width: 600px;
+      border: 2px dashed #2d2d40;
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      background: #16161e;
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: #7c6af7;
+      background: #1c1b2e;
+    }
+
+    .drop-zone input[type="file"] { display: none; }
+
+    .drop-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      opacity: 0.7;
+    }
+
+    .drop-label {
+      font-size: 1rem;
+      color: #aaa;
+    }
+
+    .drop-label strong {
+      color: #7c6af7;
+      cursor: pointer;
+    }
+
+    .drop-label strong:hover { text-decoration: underline; }
+
+    .drop-hint {
+      font-size: 0.75rem;
+      color: #555;
+      margin-top: 0.5rem;
+    }
+
+    /* Options */
+    .options {
+      width: 100%;
+      max-width: 600px;
+      margin-top: 1.5rem;
+      background: #16161e;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .options.visible { display: flex; }
+
+    .options-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #666;
+    }
+
+    .option-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .option-row label {
+      font-size: 0.875rem;
+      color: #ccc;
+      min-width: 140px;
+    }
+
+    .option-row input[type="range"] {
+      flex: 1;
+      accent-color: #7c6af7;
+      min-width: 120px;
+    }
+
+    .option-row .val {
+      font-size: 0.8rem;
+      color: #888;
+      min-width: 36px;
+      text-align: right;
+    }
+
+    select {
+      background: #0f0f13;
+      color: #e2e2e8;
+      border: 1px solid #2d2d40;
+      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.85rem;
+      flex: 1;
+    }
+
+    /* Convert button */
+    .btn-convert {
+      margin-top: 1.5rem;
+      padding: 0.75rem 2.5rem;
+      background: #7c6af7;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: none;
+    }
+
+    .btn-convert:hover { background: #6a58e5; }
+    .btn-convert:active { transform: scale(0.97); }
+    .btn-convert.visible { display: inline-block; }
+    .btn-convert:disabled { background: #444; cursor: not-allowed; }
+
+    /* Progress */
+    .progress-wrap {
+      width: 100%;
+      max-width: 600px;
+      margin-top: 1.25rem;
+      display: none;
+    }
+
+    .progress-wrap.visible { display: block; }
+
+    .progress-bar-bg {
+      background: #1e1e2a;
+      border-radius: 99px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #7c6af7, #a78bfa);
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-label {
+      font-size: 0.8rem;
+      color: #777;
+      margin-top: 0.4rem;
+      text-align: center;
+    }
+
+    /* Preview panels */
+    .previews {
+      width: 100%;
+      max-width: 900px;
+      display: none;
+      gap: 1.5rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .previews.visible { display: flex; }
+
+    .preview-panel {
+      flex: 1;
+      min-width: 260px;
+      background: #16161e;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .preview-header {
+      padding: 0.75rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #666;
+      border-bottom: 1px solid #1e1e2a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      background: #1e1e2a;
+      padding: 0.15rem 0.5rem;
+      border-radius: 99px;
+      color: #888;
+    }
+
+    .preview-body {
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 200px;
+      background: repeating-conic-gradient(#1a1a24 0% 25%, #16161e 0% 50%)
+                  0 0 / 20px 20px;
+    }
+
+    .preview-body img,
+    .preview-body svg,
+    .preview-body .svg-wrap {
+      max-width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .svg-wrap svg {
+      max-width: 100%;
+      max-height: 320px;
+    }
+
+    /* Download */
+    .btn-download {
+      display: block;
+      width: calc(100% - 2rem);
+      margin: 0 1rem 1rem;
+      padding: 0.65rem;
+      background: #1e2a1e;
+      color: #6fcf97;
+      border: 1px solid #2d4a2d;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s;
+    }
+
+    .btn-download:hover { background: #243224; }
+
+    .btn-download-svg { display: none; }
+    .btn-download-svg.visible { display: block; }
+
+    /* Error */
+    .error-msg {
+      color: #f87171;
+      font-size: 0.875rem;
+      margin-top: 1rem;
+      display: none;
+      max-width: 600px;
+      text-align: center;
+    }
+
+    .error-msg.visible { display: block; }
+  </style>
+</head>
+<body>
+
+  <h1>JPG <span>→</span> SVG</h1>
+  <p class="subtitle">Convert raster JPEG/JPG images to scalable vector graphics</p>
+
+  <!-- Drop zone -->
+  <div class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept=".jpg,.jpeg,image/jpeg" />
+    <div class="drop-icon">🖼️</div>
+    <p class="drop-label">
+      Drag &amp; drop a JPG here, or <strong id="browseBtn">browse</strong>
+    </p>
+    <p class="drop-hint">Supports .jpg / .jpeg — smaller images convert faster</p>
+  </div>
+
+  <!-- Options -->
+  <div class="options" id="options">
+    <div class="options-title">Conversion Options</div>
+
+    <div class="option-row">
+      <label>Color Palette</label>
+      <select id="optPalette">
+        <option value="sampling">Auto (sampling)</option>
+        <option value="custom">Grayscale (16 tones)</option>
+        <option value="posterize1">Posterized (fewer colors)</option>
+      </select>
+    </div>
+
+    <div class="option-row">
+      <label>Number of Colors</label>
+      <input type="range" id="optColors" min="2" max="32" value="16" step="1" />
+      <span class="val" id="optColorsVal">16</span>
+    </div>
+
+    <div class="option-row">
+      <label>Path Smoothing</label>
+      <input type="range" id="optSmooth" min="0" max="1" value="1" step="1" />
+      <span class="val" id="optSmoothVal">On</span>
+    </div>
+
+    <div class="option-row">
+      <label>Min Area (px²)</label>
+      <input type="range" id="optMinArea" min="1" max="64" value="8" step="1" />
+      <span class="val" id="optMinAreaVal">8</span>
+    </div>
+  </div>
+
+  <button class="btn-convert" id="btnConvert">Convert to SVG</button>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar-bg">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <p class="progress-label" id="progressLabel">Processing…</p>
+  </div>
+
+  <p class="error-msg" id="errorMsg"></p>
+
+  <!-- Previews -->
+  <div class="previews" id="previews">
+    <div class="preview-panel">
+      <div class="preview-header">
+        Original <span class="badge" id="origBadge">—</span>
+      </div>
+      <div class="preview-body">
+        <img id="origImg" src="" alt="original" />
+      </div>
+    </div>
+
+    <div class="preview-panel">
+      <div class="preview-header">
+        SVG Output <span class="badge" id="svgBadge">—</span>
+      </div>
+      <div class="preview-body">
+        <div class="svg-wrap" id="svgWrap"></div>
+      </div>
+      <a class="btn-download btn-download-svg" id="btnDownload" href="#" download="converted.svg">
+        ⬇ Download SVG
+      </a>
+    </div>
+  </div>
+
+  <!-- imagetracer.js loaded from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.js"></script>
+  <script>
+    const dropZone   = document.getElementById('dropZone');
+    const fileInput  = document.getElementById('fileInput');
+    const browseBtn  = document.getElementById('browseBtn');
+    const options    = document.getElementById('options');
+    const btnConvert = document.getElementById('btnConvert');
+    const progressWrap = document.getElementById('progressWrap');
+    const progressBar  = document.getElementById('progressBar');
+    const progressLabel = document.getElementById('progressLabel');
+    const previews   = document.getElementById('previews');
+    const origImg    = document.getElementById('origImg');
+    const origBadge  = document.getElementById('origBadge');
+    const svgWrap    = document.getElementById('svgWrap');
+    const svgBadge   = document.getElementById('svgBadge');
+    const btnDownload = document.getElementById('btnDownload');
+    const errorMsg   = document.getElementById('errorMsg');
+
+    const optPalette  = document.getElementById('optPalette');
+    const optColors   = document.getElementById('optColors');
+    const optColorsVal = document.getElementById('optColorsVal');
+    const optSmooth   = document.getElementById('optSmooth');
+    const optSmoothVal = document.getElementById('optSmoothVal');
+    const optMinArea  = document.getElementById('optMinArea');
+    const optMinAreaVal = document.getElementById('optMinAreaVal');
+
+    let currentFile = null;
+
+    // Range display updates
+    optColors.addEventListener('input', () => { optColorsVal.textContent = optColors.value; });
+    optSmooth.addEventListener('input', () => { optSmoothVal.textContent = optSmooth.value === '1' ? 'On' : 'Off'; });
+    optMinArea.addEventListener('input', () => { optMinAreaVal.textContent = optMinArea.value; });
+
+    // File picker
+    browseBtn.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('click', (e) => { if (e.target !== browseBtn) fileInput.click(); });
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) handleFile(fileInput.files[0]);
+    });
+
+    // Drag & drop
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+
+    function handleFile(file) {
+      const valid = /image\/jpe?g/i.test(file.type) || /\.(jpg|jpeg)$/i.test(file.name);
+      if (!valid) {
+        showError('Please upload a JPEG or JPG file.');
+        return;
+      }
+      hideError();
+      currentFile = file;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        origImg.src = e.target.result;
+        origBadge.textContent = formatBytes(file.size);
+        options.classList.add('visible');
+        btnConvert.classList.add('visible');
+
+        // Reset SVG output
+        svgWrap.innerHTML = '';
+        svgBadge.textContent = '—';
+        btnDownload.classList.remove('visible');
+        previews.classList.add('visible');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    btnConvert.addEventListener('click', () => {
+      if (!currentFile) return;
+      convertToSVG(origImg.src);
+    });
+
+    function convertToSVG(dataURL) {
+      btnConvert.disabled = true;
+      progressWrap.classList.add('visible');
+      setProgress(10, 'Loading image…');
+      hideError();
+
+      setTimeout(() => {
+        setProgress(30, 'Tracing paths…');
+
+        const palette = optPalette.value;
+        const numColors = parseInt(optColors.value);
+        const smooth = optSmooth.value === '1' ? 1 : 0;
+        const minArea = parseInt(optMinArea.value);
+
+        const opts = {
+          numberofcolors: numColors,
+          mincolorratio: 0,
+          colorquantcycles: 3,
+          pathomit: minArea,
+          ltres: 1,
+          qtres: 1,
+          scale: 1,
+          smoothing: smooth,
+          roundcoords: 1,
+          viewbox: true,
+          desc: false,
+          blurradius: 0,
+        };
+
+        if (palette === 'custom') {
+          // Grayscale palette
+          const grays = [];
+          for (let i = 0; i < 16; i++) {
+            const v = Math.round((i / 15) * 255);
+            grays.push({ r: v, g: v, b: v, a: 255 });
+          }
+          opts.colorsampling = 0;
+          opts.pal = grays;
+        } else if (palette === 'posterize1') {
+          opts.colorsampling = 2;
+          opts.numberofcolors = Math.min(numColors, 8);
+        } else {
+          opts.colorsampling = 1;
+        }
+
+        // Use a worker-friendly approach via timeout to let UI update
+        setTimeout(() => {
+          try {
+            setProgress(50, 'Generating SVG…');
+
+            const svgStr = ImageTracer.imagedataToSVG(
+              getImageData(dataURL),
+              opts
+            );
+
+            setProgress(90, 'Finalising…');
+
+            setTimeout(() => {
+              svgWrap.innerHTML = svgStr;
+              const bytes = new Blob([svgStr]).size;
+              svgBadge.textContent = formatBytes(bytes);
+
+              // Download link
+              const blob = new Blob([svgStr], { type: 'image/svg+xml' });
+              const url = URL.createObjectURL(blob);
+              const baseName = currentFile.name.replace(/\.(jpg|jpeg)$/i, '');
+              btnDownload.href = url;
+              btnDownload.download = baseName + '.svg';
+              btnDownload.classList.add('visible');
+
+              setProgress(100, 'Done!');
+              setTimeout(() => progressWrap.classList.remove('visible'), 800);
+              btnConvert.disabled = false;
+            }, 50);
+          } catch (err) {
+            showError('Conversion failed: ' + err.message);
+            progressWrap.classList.remove('visible');
+            btnConvert.disabled = false;
+          }
+        }, 50);
+      }, 50);
+    }
+
+    function getImageData(dataURL) {
+      const img = new Image();
+      img.src = dataURL;
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      return ctx.getImageData(0, 0, canvas.width, canvas.height);
+    }
+
+    function setProgress(pct, label) {
+      progressBar.style.width = pct + '%';
+      progressLabel.textContent = label;
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    }
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.add('visible');
+    }
+
+    function hideError() {
+      errorMsg.classList.remove('visible');
+    }
+  </script>
+</body>
+</html>

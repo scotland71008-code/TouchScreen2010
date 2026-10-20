@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Aptos', 'Aptos Display', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@layer base {
+  :root, html, body {
+    font-family: 'Aptos', 'Aptos Display', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Aptos Display', 'Aptos', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes stream {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-stream {
+  animation: stream 1.5s linear infinite;
+}
+
+/* Styling for the full logo to maintain its aspect ratio */
+.main-logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain; 
+}
+
+/* Styling for the avatar symbol with a dark background for contrast */
+.avatar-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  background-color: #111827; /* Dark background to make the white symbol pop */
+  border-radius: 8px; /* Optional: gives a slight rounding to the badge */
+}
+
+.avatar-icon {
+  height: 24px;
+  width: 24px;
+  object-fit: contain;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* ===== DAY MODE (Light Theme) — Comprehensive ===== */
+.day-mode {
+  color-scheme: light;
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* ── Structural shells ── */
+.day-mode #workspace-sidebar { background-color: #e2e8f0 !important; border-color: #cbd5e1 !important; }
+.day-mode #workspace-main    { background-color: #f1f5f9 !important; }
+
+/* ── ALL arbitrary dark hex values (#0x and #1x and #2b) ── */
+/* Using substring attribute selectors to catch base class + every opacity variant */
+.day-mode [class*="bg-[#0"],
+.day-mode [class*="bg-[#1"],
+.day-mode [class*="bg-[#2b"] {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* ── Tailwind neutral/zinc/slate dark named classes + opacity variants ── */
+.day-mode [class*="bg-neutral-9"],
+.day-mode [class*="bg-neutral-8"],
+.day-mode [class*="bg-zinc-9"],
+.day-mode [class*="bg-zinc-8"],
+.day-mode [class*="bg-slate-9"],
+.day-mode [class*="bg-slate-8"] {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+.day-mode [class*="bg-neutral-7"],
+.day-mode [class*="bg-zinc-7"],
+.day-mode [class*="bg-slate-7"] {
+  background-color: #f1f5f9 !important;
+  background-image: none !important;
+}
+
+/* ── Black / near-black overlays ── */
+.day-mode [class*="bg-black"] {
+  background-color: rgba(248, 250, 252, 0.97) !important;
+  background-image: none !important;
+}
+
+/* ── White-overlay glass effects → subtle slate tint ── */
+.day-mode [class*="bg-white/"] {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+/* ── Dark gradients → turn off on day mode ── */
+.day-mode [class*="from-neutral-9"],
+.day-mode [class*="from-neutral-8"],
+.day-mode [class*="from-zinc-9"],
+.day-mode [class*="from-[#0"],
+.day-mode [class*="from-[#1"] {
+  --tw-gradient-from: #e2e8f0 !important;
+}
+.day-mode [class*="to-neutral-9"],
+.day-mode [class*="to-neutral-8"],
+.day-mode [class*="to-zinc-9"],
+.day-mode [class*="to-[#0"],
+.day-mode [class*="to-[#1"] {
+  --tw-gradient-to: #f1f5f9 !important;
+}
+.day-mode [class*="via-neutral-9"],
+.day-mode [class*="via-[#0"],
+.day-mode [class*="via-[#1"] {
+  --tw-gradient-via: #e8edf5 !important;
+}
+
+/* ── TEXT — all dark text → dark-on-light ── */
+.day-mode .text-white        { color: #0f172a !important; }
+.day-mode [class*="text-neutral-1"] { color: #0f172a !important; }
+.day-mode [class*="text-neutral-2"] { color: #1e293b !important; }
+.day-mode [class*="text-neutral-3"] { color: #334155 !important; }
+.day-mode [class*="text-neutral-4"] { color: #475569 !important; }
+.day-mode [class*="text-neutral-5"] { color: #64748b !important; }
+.day-mode [class*="text-slate-1"]   { color: #0f172a !important; }
+.day-mode [class*="text-slate-2"]   { color: #1e293b !important; }
+.day-mode [class*="text-slate-3"]   { color: #334155 !important; }
+
+/* ── BORDERS — white opacity → slate ── */
+.day-mode [class*="border-white"]   { border-color: #cbd5e1 !important; }
+.day-mode [class*="border-neutral-8"],
+.day-mode [class*="border-neutral-7"] { border-color: #cbd5e1 !important; }
+
+/* ── Sidebar nav active / hover ── */
+.day-mode #workspace-sidebar nav button { color: #334155 !important; }
+.day-mode #workspace-sidebar nav button:hover { background-color: #cbd5e1 !important; color: #0f172a !important; }
+
+/* ── Scrollbar ── */
+.day-mode ::-webkit-scrollbar-track { background: #f1f5f9; }
+.day-mode ::-webkit-scrollbar-thumb { background: #94a3b8; }
+.day-mode ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+/* ── Keep accent / brand colors intact ── */
+/* sky, amber, emerald, purple, red, rose, etc. intentionally NOT overridden */
+
+/* ===== END DAY MODE ===== */
+
+/* Touch Screen & Kiosk Optimizations */
+html, body {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, a, input, select, [role="button"] {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Touch-friendly Range Slider Styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #1e1e24;
+  outline: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fbbf24;
+  cursor: pointer;
+  border: 3px solid #18181b;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.25);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.9);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fbbf24;
+  cursor: pointer;
+  border: 3px solid #18181b;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+}
+

@@ -1,0 +1,11 @@
+node_modules/
+build/
+dist/
+coverage/
+electron-dist/
+.DS_Store
+*.log
+*.tmp
+.env*
+!.env.example
+.claude/settings.local.json

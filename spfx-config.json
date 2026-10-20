@@ -1,0 +1,18 @@
+{
+  "package": {
+    "name": "octave-touchscreen-webpart",
+    "displayName": "Octave TouchScreen Quiz",
+    "description": "Interactive Octave Portfolio Knowledge Quiz with 12 specializations and certificate generation"
+  },
+  "solution": {
+    "name": "Octave TouchScreen",
+    "id": "12345678-1234-1234-1234-123456789012",
+    "version": "1.0.0",
+    "sharePointContentDeploymentPath": "solutions/octave-touchscreen"
+  },
+  "webpart": {
+    "name": "OctaveTouchScreenQuiz",
+    "displayName": "Octave TouchScreen Quiz",
+    "description": "12 quiz types, 30 questions, real-time scoring, certificate generation"
+  }
+}
