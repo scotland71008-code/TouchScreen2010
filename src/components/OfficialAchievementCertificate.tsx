@@ -140,92 +140,57 @@ export default function OfficialAchievementCertificate({
 
     try {
       const W = 1584, H = 1224;
+
+      // Get the live SVG element (already rendered with correct colors/text)
+      const svgEl = certificateContainerRef.current?.querySelector('svg');
+      if (!svgEl) throw new Error('SVG element not found');
+
+      // Helper: Blob → base64 data URL
+      const toBase64 = (blob: Blob) => new Promise<string>((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result as string);
+        reader.onerror = rej;
+        reader.readAsDataURL(blob);
+      });
+
+      // Fetch background PNG and Great Vibes font as base64 in parallel
+      const [bgBase64, fontBase64] = await Promise.all([
+        fetch('/certificate_background.png').then(r => r.blob()).then(toBase64),
+        fetch('/fonts/GreatVibes-Regular.ttf').then(r => r.blob()).then(toBase64).catch(() => null as null),
+      ]);
+
+      // Serialize the live SVG DOM to a string
+      const serializer = new XMLSerializer();
+      let svgStr = serializer.serializeToString(svgEl);
+
+      // Embed background image as base64 (replaces the /certificate_background.png href)
+      svgStr = svgStr.replace(/(href=")[^"]*certificate_background\.png(")/g, `$1${bgBase64}$2`);
+
+      // Inject Great Vibes @font-face inside <defs> so it renders in the sandboxed SVG context
+      if (fontBase64) {
+        const fontStyle = `<style>@font-face{font-family:'Great Vibes';src:url('${fontBase64}') format('truetype');}</style>`;
+        svgStr = svgStr.replace(/(<defs[^>]*>)/, `$1${fontStyle}`);
+      }
+
+      // Load the SVG blob as an image and draw it onto a canvas
+      const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+
       const canvas = document.createElement('canvas');
       canvas.width = W;
       canvas.height = H;
       const ctx = canvas.getContext('2d')!;
 
-      // 1. Draw background image
       await new Promise<void>((resolve, reject) => {
-        const bg = new Image();
-        bg.crossOrigin = 'anonymous';
-        bg.onload = () => { ctx.drawImage(bg, 0, 0, W, H); resolve(); };
-        bg.onerror = reject;
-        bg.src = '/certificate_background.png';
+        const img = new Image();
+        img.onload = () => { ctx.drawImage(img, 0, 0, W, H); resolve(); };
+        img.onerror = reject;
+        img.src = svgUrl;
       });
 
-      // 2. Ensure Great Vibes font is loaded
-      try { await document.fonts.load(`${nameFontSize}px "Great Vibes"`); } catch (_) {}
+      URL.revokeObjectURL(svgUrl);
 
-      // 3. Recipient name (Great Vibes, white)
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#ffffff';
-      ctx.font = `${nameFontSize}px "Great Vibes", cursive`;
-      ctx.shadowColor = 'rgba(0,0,0,0.8)';
-      ctx.shadowBlur = 8;
-      ctx.fillText(winner.name || 'Participant Name', nameX, nameY);
-      ctx.restore();
-
-      // 4. Credentials line (spec · org · email)
-      const credParts: { text: string; color: string; bold?: boolean }[] = [];
-      if (spec) credParts.push({ text: spec, color: '#cbd5e1' });
-      if (spec && (org || winner.email)) credParts.push({ text: ' · ', color: '#64748b' });
-      if (org) credParts.push({ text: org, color: '#ffffff', bold: true });
-      if (winner.email) credParts.push({ text: ` (${winner.email})`, color: '#64748b' });
-
-      if (credParts.length > 0) {
-        ctx.save();
-        ctx.textAlign = 'left';
-        ctx.font = '15px "Plus Jakarta Sans", sans-serif';
-        const totalWidth = credParts.reduce((w, p) => {
-          ctx.font = p.bold ? 'bold 15px "Plus Jakarta Sans", sans-serif' : '15px "Plus Jakarta Sans", sans-serif';
-          return w + ctx.measureText(p.text).width;
-        }, 0);
-        let cx = 792 - totalWidth / 2;
-        credParts.forEach(p => {
-          ctx.font = p.bold ? 'bold 15px "Plus Jakarta Sans", sans-serif' : '15px "Plus Jakarta Sans", sans-serif';
-          ctx.fillStyle = p.color;
-          ctx.fillText(p.text, cx, 748);
-          cx += ctx.measureText(p.text).width;
-        });
-        ctx.restore();
-      }
-
-      // 5. Body sentence with pink "1st/2nd/3rd place"
-      if (includeBodySentence) {
-        const before = 'In recognition of your participation in the ADIPEC interactive quiz and for securing ';
-        const highlight = placeWord;
-        ctx.save();
-        ctx.font = '20px "Plus Jakarta Sans", sans-serif';
-        const totalW = ctx.measureText(before).width + ctx.measureText(highlight).width;
-        let sx = 792 - totalW / 2;
-        ctx.textAlign = 'left';
-        ctx.fillStyle = '#e2e8f0';
-        ctx.fillText(before, sx, bodyY);
-        sx += ctx.measureText(before).width;
-        ctx.font = 'bold 20px "Plus Jakarta Sans", sans-serif';
-        ctx.fillStyle = '#f43f5e';
-        ctx.fillText(highlight, sx, bodyY);
-        ctx.restore();
-      }
-
-      // 6. Date
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#f1f5f9';
-      ctx.font = '500 18px "Plus Jakarta Sans", sans-serif';
-      ctx.fillText(formattedDate, dateX, dateY);
-      ctx.restore();
-
-      // 7. Medal emoji
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.font = '32px serif';
-      ctx.fillText(winner.rank === 1 ? '🥇' : winner.rank === 2 ? '🥈' : '🥉', 792, 970);
-      ctx.restore();
-
-      // 8. Download
+      // Download as PNG
       const link = document.createElement('a');
       link.download = filename;
       link.href = canvas.toDataURL('image/png');
