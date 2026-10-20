@@ -245,7 +245,7 @@ export const CERTIFICATE_POSITIONS: CertificateLayoutConfig = {
     x: 792, // Centred at x=792
     y: 700, // Just above name line (y=710)
     lineY: 710,
-    fontSize: 68,
+    fontSize: 88,
     font: "'Great Vibes', cursive, 'Brush Script MT', 'Times New Roman', serif"
   },
   date: {
