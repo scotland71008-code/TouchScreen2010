@@ -279,25 +279,7 @@ export default function OfficialAchievementCertificate({
           {winner.name || 'Participant Name'}
         </text>
 
-        {/* ── Dynamic Layer 2: Participant Credentials ── */}
-        {(org || spec || winner.email) && (
-          <text
-            x="792"
-            y="748"
-            textAnchor="middle"
-            fill="#94a3b8"
-            style={{
-              fontFamily: "'Plus Jakarta Sans', monospace, sans-serif",
-              fontSize: '15px',
-              letterSpacing: '0.04em',
-            }}
-          >
-            {spec && <tspan fill="#cbd5e1">{spec}</tspan>}
-            {spec && org && <tspan fill="#64748b"> · </tspan>}
-            {org && <tspan fill="#ffffff" fontWeight="600">{org}</tspan>}
-            {winner.email && <tspan fill="#64748b"> ({winner.email})</tspan>}
-          </text>
-        )}
+        {/* Credentials overlay removed — not part of the certificate template */}
 
         {/* ── Dynamic Layer 3: Body Sentence (Optional) ── */}
         {/* Two separate <text> elements so html2canvas captures the pink fill correctly */}
@@ -349,16 +331,7 @@ export default function OfficialAchievementCertificate({
           {formattedDate}
         </text>
 
-        {/* ── Distinction Medal Emblem Accent ── */}
-        <text
-          x="792"
-          y="970"
-          textAnchor="middle"
-          fontSize="22"
-          className="select-none pointer-events-none"
-        >
-          {winner.rank === 1 ? '🥇' : winner.rank === 2 ? '🥈' : '🥉'}
-        </text>
+        {/* Medal emoji removed — ADIPEC 2026 badge is already baked into the background PNG */}
       </svg>
     </div>
   );
