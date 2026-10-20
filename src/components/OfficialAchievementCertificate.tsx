@@ -3,6 +3,7 @@ import * as Icons from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { CERTIFICATE_POSITIONS } from '../utils/certificateConfig';
+import { CERTIFICATE_BACKGROUND_BASE64 } from '../utils/certificateBackground';
 
 export interface Top3WinnerData {
   rank: number;
@@ -153,18 +154,13 @@ export default function OfficialAchievementCertificate({
         reader.readAsDataURL(blob);
       });
 
-      // Fetch background PNG and Great Vibes font as base64 in parallel
-      const [bgBase64, fontBase64] = await Promise.all([
-        fetch('/certificate_background.png').then(r => r.blob()).then(toBase64),
-        fetch('/fonts/GreatVibes-Regular.ttf').then(r => r.blob()).then(toBase64).catch(() => null as null),
-      ]);
+      // Fetch Great Vibes font as base64 (background is already embedded as base64 in the SVG)
+      const fontBase64 = await fetch('/fonts/GreatVibes-Regular.ttf')
+        .then(r => r.blob()).then(toBase64).catch(() => null as null);
 
       // Serialize the live SVG DOM to a string
       const serializer = new XMLSerializer();
       let svgStr = serializer.serializeToString(svgEl);
-
-      // Embed background image as base64 (replaces the /certificate_background.png href)
-      svgStr = svgStr.replace(/(href=")[^"]*certificate_background\.png(")/g, `$1${bgBase64}$2`);
 
       // Inject Great Vibes @font-face inside <defs> so it renders in the sandboxed SVG context
       if (fontBase64) {
@@ -247,9 +243,9 @@ export default function OfficialAchievementCertificate({
           </linearGradient>
         </defs>
 
-        {/* ── Base Layer: Backdrop Image with vector fallback ── */}
+        {/* ── Base Layer: Backdrop Image (embedded base64 — guaranteed correct across all environments) ── */}
         <image
-          href="/certificate_background.png"
+          href={CERTIFICATE_BACKGROUND_BASE64}
           x="0"
           y="0"
           width="1584"
